@@ -1,0 +1,52 @@
+version: "3.7"
+
+networks:
+  gitea-net:
+    driver: "bridge"
+
+volumes:
+  gitea:
+    driver: local
+  gitea-db:
+    driver: local
+
+services:
+  gitea:
+    image: gitea/gitea:latest
+    container_name: gitea
+    environment:
+      - DB_TYPE=postgres
+      - DB_HOST=gitea-db:5432
+      - DB_NAME=$GITEA_DB_DB
+      - DB_USER=$GITEA_DB_USER
+      - DB_PASSWD=$GITEA_DB_PASS
+      - RUN_MODE=prod
+      - SSH_DOMAIN=$GITEA_SSH_DOMAIN
+      - LFS_START_SERVER=$GITEA_LFS_START_SERVER
+      - SECRET_KEY=$GITEA_SECRET_KEY
+      - REQUIRE_SIGNIN_VIEW=true
+    restart: always
+    volumes:
+      - gitea:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "3000:3000"
+      - "222:22"
+    networks:
+      - gitea-net
+    depends_on:
+      - gitea-db
+
+  gitea-db:
+    image: postgres:9.6
+    container_name: gitea-db
+    restart: always
+    environment:
+      - POSTGRES_USER=$GITEA_DB_USER
+      - POSTGRES_PASSWORD=$GITEA_DB_PASS
+      - POSTGRES_DB=$GITEA_DB_DB
+    volumes:
+      - gitea-db:/var/lib/postgresql/data
+    networks:
+      - gitea-net
