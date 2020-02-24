@@ -2,7 +2,11 @@ version: "3.7"
 
 networks:
   gitea-net:
-    driver: "bridge"
+    name: gitea-net
+    driver: bridge
+  elk-net:
+    name: elk-net
+    driver: bridge
 
 volumes:
   gitea:
@@ -13,7 +17,8 @@ volumes:
 services:
   gitea:
     image: gitea/gitea:latest
-    container_name: gitea
+    container_name: $GITEA_CONTAINER_NAME
+    hostname: $GITEA_CONTAINER_NAME
     environment:
       - DB_TYPE=postgres
       - DB_HOST=gitea-db:5432
@@ -40,7 +45,8 @@ services:
 
   gitea-db:
     image: postgres:9.6
-    container_name: gitea-db
+    container_name: $GITEA_DB_CONTAINER_NAME
+    hostname: $GITEA_DB_CONTAINER_NAME
     restart: always
     environment:
       - POSTGRES_USER=$GITEA_DB_USER
@@ -50,3 +56,4 @@ services:
       - gitea-db:/var/lib/postgresql/data
     networks:
       - gitea-net
+      - elk-net
